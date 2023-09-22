@@ -1,19 +1,26 @@
-//Declaro los Estados y defines útiles 
-#define RED PB?
-#define YELLOW PB?
-#define GREEN PB?
-#define PULS PB?
 
+#define VERDE PB7
+#define AMARILLO PB8
+#define ROJO PB9
+#define BTN PA1
+#define BTN_ALARMA PA2
 
-//Declaro las variables globales que voy a usar
+bool isPressed_BTN = false;
+bool isPressed_ALARMA = false;
+int mode = 0;
+
+#define DEFAULT 0
+#define STOP 1
+#define ALARM 2
 
 void setup()
 {  
-  pinMode(RED, OUTPUT);
-  pinMode(YELLOW, OUTPUT);
-  pinMode(GREEN, OUTPUT);
-  pinMode(PULS, INPUT);
-  
+  pinMode(ROJO, OUTPUT);
+  pinMode(AMARILLO, OUTPUT);
+  pinMode(VERDE, OUTPUT);
+  pinMode(BTN, INPUT_PULLUP);
+  pinMode(BTN_ALARMA, INPUT_PULLUP);
+
   Timer1.pause();
   Timer1.setPeriod(200000); 
   Timer1.setMode(TIMER_CH1,TIMER_OUTPUT_COMPARE);
@@ -25,4 +32,15 @@ void setup()
 
 void loop()
 {
+  
+}
+
+void interruptTimer(){
+
+}
+
+void defaultState(){
+  digitalWrite(ROJO, LOW);
+  digitalWrite(AMARILLO, LOW);
+  digitalWrite(VERDE, HIGH);
 }
