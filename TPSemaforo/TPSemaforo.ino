@@ -23,7 +23,9 @@
 
 //Variables globales
 int state = DEFAULT_GREEN;
-bool alarm = false;
+bool changeState = false;
+bool alarmPressed = false;
+bool interruptPressed = false;
 
 void setup()
 { 
@@ -89,19 +91,24 @@ void loop()
       break;
   }
 
-  if (alarm){
-    Serial.print("There's an emergency, alarm ON");
-    digitalWrite(BUZZER, ON);
-    state = EMERGENCY;
-    Timer1.Pause();
+  if (alarmPressed){
+    if(state != EMERGENCY){ 
+      state = EMERGENCY;
+      Serial.print("There's an emergency, alarm ON");
+      digitalWrite(BUZZER, ON);
+      Timer1.pause();
+    }
+    alarmPressed = false;
+    if (state == EMERGENCY){
+      state = RED;
+      Timer1.setPeriod(WAIT_CROSSING);
+      Timer1.refresh();
+      Timer1.resume();
+    }
   }
-  else {
-    state = VERDE;
-  }
-}
 
-void interruptTimer(){
-  switch (state) {
+  if (changeState){
+    switch (state) {
     case DEFAULT_GREEN:
       state = YELLOW;
       Timer1.pause();
@@ -127,20 +134,25 @@ void interruptTimer(){
 
     case YELLOW_RED:
       state = DEFAULT_GREEN;
-      
+      Timer1.pause();
+      Timer1.refresh();
+      Timer1.resume();
+      break;
+
+  }
+  changeState = false;
   }
 }
 
-void defaultState(){
-  digitalWrite(ROJO, OFF);
-  digitalWrite(AMARILLO, OFF);
-  digitalWrite(VERDE, ON);
+void interruptTimer(){
+  changeState = true; //inicia el cambio de estados
 }
 
-void buttonInterrupt(){
 
+void buttonInterrupt(){
+  interruptPressed = true; // cambia de verde a rojo
 }
 
 void alarmInterrupt(){
-
+  alarmPressed = true; //cambia al estado de emergencia
 }
