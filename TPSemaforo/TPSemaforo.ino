@@ -17,6 +17,8 @@
 #define WAIT_SEQUENCE 2 * 1000000
 #define WAIT_CROSSING 5 * 1000000 
 
+#define ON HIGH
+#define OFF OFF
 #define MODE RISING
 
 //Variables globales
@@ -37,6 +39,7 @@ void setup()
   attachInterrupt(BTN_ALARMA, alarmInterrupt, MODE);
 
 
+  //configuro el Timer1
   Timer1.pause();
   Timer1.setPeriod(WAIT_SEQUENCE); 
   Timer1.setMode(TIMER_CH1,TIMER_OUTPUT_COMPARE);
@@ -50,56 +53,50 @@ void loop()
 {
 
   switch (state){
-    case DEFAULT_GREEN:
-      digitalWrite(ROJO, LOW);
-      digitalWrite(AMARILLO, LOW);
-      digitalWrite(VERDE, HIGH);
+    case DEFAULT_GREEN: //enciende luz verde
+      digitalWrite(ROJO, OFF);
+      digitalWrite(AMARILLO, OFF);
+      digitalWrite(VERDE, ON);
+      digitalWrite(BUZZER, OFF);
       break;
     
-    case YELLOW:
-      digitalWrite(ROJO, LOW);
-      digitalWrite(AMARILLO, HIGH);
-      digitalWrite(VERDE, LOW);
-      Timer1.pause();
-      Timer1.refresh();
-      Timer1.resume();
+    case YELLOW: //enciende luz amarilla
+      digitalWrite(ROJO, OFF);
+      digitalWrite(AMARILLO, ON);
+      digitalWrite(VERDE, OFF);
+      digitalWrite(BUZZER, OFF);
       break;
       
-    case YELLOW_RED:
-      digitalWrite(ROJO, HIGH);
-      digitalWrite(AMARILLO, HIGH);
-      digitalWrite(VERDE, LOW);
-      Timer1.pause();
-      Timer1.refresh();
-      Timer1.resume();
+    case YELLOW_RED: //enciende luz amarilla y luz roja
+      digitalWrite(ROJO, ON);
+      digitalWrite(AMARILLO, ON);
+      digitalWrite(VERDE, OFF);
+      digitalWrite(BUZZER, OFF);
       break;
 
-    case RED:
-      digitalWrite(ROJO, HIGH);
-      digitalWrite(AMARILLO, LOW);
-      digitalWrite(VERDE, LOW);
-      Timer1.pause();
-      Timer1.setPeriod(WAIT_CROSSING);
-      Timer1.refresh();
-      Timer1.resume();
+    case RED: //enciende luz roja
+      digitalWrite(ROJO, ON);
+      digitalWrite(AMARILLO, OFF);
+      digitalWrite(VERDE, OFF);
+      digitalWrite(BUZZER, OFF);
       break;
     
-    case EMERGENCY:
-      digitalWrite(ROJO, HIGH);
-      digitalWrite(AMARILLO, LOW);
-      digitalWrite(VERDE, LOW);
+    case EMERGENCY: //estado de emergencia
+      digitalWrite(ROJO, ON);
+      digitalWrite(AMARILLO, OFF);
+      digitalWrite(VERDE, OFF);
+      digitalWrite(BUZZER, ON);
       break;
   }
 
-  switch (alarm) {
-    case true:
-      Serial.print("There's an emergency, alarm ON");
-      digitalWrite(BUZZER, HIGH);
-      estado = EMERGENCY;
-      break;
-    
-    case false:
-      estado = VERDE;
+  if (alarm){
+    Serial.print("There's an emergency, alarm ON");
+    digitalWrite(BUZZER, ON);
+    state = EMERGENCY;
+    Timer1.Pause();
+  }
+  else {
+    state = VERDE;
   }
 }
 
@@ -111,15 +108,33 @@ void interruptTimer(){
       Timer1.refresh();
       Timer1.resume();
       break;
+    
     case YELLOW:
+      state = RED;
+      Timer1.pause();
+      Timer1.setPeriod(WAIT_CROSSING);
+      Timer1.refresh();
+      Timer1.resume();
+      break;
+    
+    case RED:
+      state = YELLOW_RED;
+      Timer1.pause();
+      Timer1.setPeriod(WAIT_SEQUENCE);
+      Timer1.refresh();
+      Timer1.resume();
+      break;
+
+    case YELLOW_RED:
+      state = DEFAULT_GREEN;
       
   }
 }
 
 void defaultState(){
-  digitalWrite(ROJO, LOW);
-  digitalWrite(AMARILLO, LOW);
-  digitalWrite(VERDE, HIGH);
+  digitalWrite(ROJO, OFF);
+  digitalWrite(AMARILLO, OFF);
+  digitalWrite(VERDE, ON);
 }
 
 void buttonInterrupt(){
